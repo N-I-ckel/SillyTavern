@@ -1,0 +1,88 @@
+name: CI — Build + Test + Lint
+
+on:
+  push:
+    branches: [main]
+    paths: ['infra/**']
+  pull_request:
+    branches: [main]
+    paths: ['infra/**']
+
+env:
+  BAZELISK_VERSION: v1.25.0
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bazelisk
+        uses: bazelbuild/setup-bazelisk@v3
+        with:
+          bazelisk-version: ${{ env.BAZELISK_VERSION }}
+
+      - name: Mount Bazel cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/bazel-disk
+          key: bazel-${{ runner.os }}-${{ hashFiles('infra/MODULE.bazel.lock') }}
+          restore-keys: bazel-${{ runner.os }}-
+
+      - name: Build all targets
+        working-directory: infra
+        run: bazel build //... --config=ci
+
+      - name: Run all tests
+        working-directory: infra
+        run: bazel test //... --config=ci
+
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint umbrella chart
+        run: helm lint infra/charts/agent-platform -f infra/charts/agent-platform/values.yaml
+
+      - name: Lint with local values
+        run: helm lint infra/charts/agent-platform -f infra/charts/agent-platform/values-local.yaml
+
+      - name: Lint with cloud values
+        run: helm lint infra/charts/agent-platform -f infra/charts/agent-platform/values-cloud.yaml
+
+      - name: Validate schema
+        run: |
+          helm template ap infra/charts/agent-platform \
+            -f infra/charts/agent-platform/values.yaml \
+            --validate 2>&1
+
+  oci-push:
+    needs: [build-and-test, helm-lint]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bazelisk
+        uses: bazelbuild/setup-bazelisk@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push OCI images
+        working-directory: infra
+        run: |
+          bazel run //services/sillytavern:push --config=ci
+          bazel run //services/mcp-gateway:push --config=ci
+          bazel run //services/agent-orchestrator:push --config=ci
+          bazel run //services/comfyui:push --config=ci

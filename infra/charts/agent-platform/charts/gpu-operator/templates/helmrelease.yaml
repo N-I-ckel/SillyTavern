@@ -1,0 +1,39 @@
+{{- if .Values.enabled }}
+# GPU Operator is deployed via its official Helm chart.
+# This template creates a HelmRelease to manage it declaratively.
+# In practice, install via:
+#   helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+#   helm install gpu-operator nvidia/gpu-operator --version {{ .Values.version }} \
+#     --namespace gpu-operator --create-namespace \
+#     --set driver.enabled=true \
+#     --set toolkit.enabled=true \
+#     --set devicePlugin.enabled=true \
+#     --set dcgmExporter.enabled=true \
+#     --set migManager.enabled=false
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-gpu-operator-install
+  labels:
+    app.kubernetes.io/name: gpu-operator
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "-10"
+data:
+  install.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    helm repo add nvidia https://helm.ngc.nvidia.com/nvidia || true
+    helm repo update
+    helm upgrade --install gpu-operator nvidia/gpu-operator \
+      --version {{ .Values.version }} \
+      --namespace gpu-operator \
+      --create-namespace \
+      --set driver.enabled=true \
+      --set toolkit.enabled=true \
+      --set devicePlugin.enabled=true \
+      --set dcgmExporter.enabled=true \
+      --set migManager.enabled=false \
+      --wait --timeout 600s
+{{- end }}

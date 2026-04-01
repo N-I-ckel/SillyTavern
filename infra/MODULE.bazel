@@ -1,0 +1,67 @@
+"""Unified AI Agent Platform — Bazelisk + Helm + K8s"""
+
+module(
+    name = "agent-platform",
+    version = "0.1.0",
+)
+
+# ===== JavaScript / Node.js =====
+bazel_dep(name = "aspect_rules_js", version = "3.0.3")
+bazel_dep(name = "aspect_rules_esbuild", version = "1.0.0")
+bazel_dep(name = "rules_nodejs", version = "6.3.4")
+
+# ===== Python =====
+bazel_dep(name = "rules_python", version = "1.8.4")
+
+# ===== OCI Container Images =====
+bazel_dep(name = "rules_oci", version = "2.3.0")
+
+# ===== Helm Charts =====
+bazel_dep(name = "rules_helm", version = "0.18.0")
+
+# ===== Packaging =====
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+
+# ===== Node.js Toolchain =====
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.16.0")
+
+# ===== npm Dependencies =====
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = ".bazelignore",
+)
+use_repo(npm, "npm")
+
+# ===== Python Toolchain + pip =====
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = "3.10.6")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pip",
+    python_version = "3.10",
+    requirements_lock = "//:requirements_lock.txt",
+)
+use_repo(pip, "pip")
+
+# ===== OCI Base Images =====
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "node_base",
+    image = "node",
+    tag = "22-alpine",
+)
+oci.pull(
+    name = "python_base",
+    image = "python",
+    tag = "3.10-slim",
+)
+oci.pull(
+    name = "cuda_base",
+    image = "nvidia/cuda",
+    tag = "12.8.0-runtime-ubuntu22.04",
+)
+use_repo(oci, "node_base", "python_base", "cuda_base")

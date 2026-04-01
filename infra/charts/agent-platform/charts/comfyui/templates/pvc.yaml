@@ -1,0 +1,47 @@
+{{- if .Values.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-comfyui-models
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/component: models
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.easywan22.modelStorage.storageClass }}
+  storageClassName: {{ .Values.easywan22.modelStorage.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.easywan22.modelStorage.size | default "100Gi" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-comfyui-output
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/component: output
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-comfyui-input
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/component: input
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+{{- end }}

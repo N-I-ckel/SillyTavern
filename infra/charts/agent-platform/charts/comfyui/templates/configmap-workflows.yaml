@@ -1,0 +1,14 @@
+{{- if and .Values.enabled .Values.easywan22.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-comfyui-workflows
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/component: workflows
+data:
+  {{- range $path, $_ := .Files.Glob "workflows/*.json" }}
+  {{ base $path }}: |-
+    {{ $.Files.Get $path | indent 4 }}
+  {{- end }}
+{{- end }}

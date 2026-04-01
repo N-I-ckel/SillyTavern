@@ -1,0 +1,79 @@
+{{- if and .Values.enabled .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-grafana-dashboards
+  labels:
+    app.kubernetes.io/name: grafana
+    grafana_dashboard: "1"
+data:
+  agent-platform-overview.json: |
+    {
+      "dashboard": {
+        "title": "Agent Platform Overview",
+        "uid": "agent-platform-overview",
+        "panels": [
+          {
+            "title": "SillyTavern - Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{app=\"sillytavern\"}[5m])",
+                "legendFormat": "{{method}} {{status}}"
+              }
+            ]
+          },
+          {
+            "title": "ComfyUI - GPU Utilization",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "DCGM_FI_DEV_GPU_UTIL{pod=~\".*comfyui.*\"}",
+                "legendFormat": "GPU {{gpu}}"
+              }
+            ]
+          },
+          {
+            "title": "ComfyUI - GPU Memory Used",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "DCGM_FI_DEV_FB_USED{pod=~\".*comfyui.*\"}",
+                "legendFormat": "GPU {{gpu}} Memory"
+              }
+            ]
+          },
+          {
+            "title": "MCP Gateway - Active Connections",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "ws_active_connections{app=\"mcp-gateway\"}",
+                "legendFormat": "WebSocket Connections"
+              }
+            ]
+          },
+          {
+            "title": "Agent Orchestrator - Active Sessions",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "agent_sessions_active{app=\"agent-orchestrator\"}",
+                "legendFormat": "Active Sessions"
+              }
+            ]
+          },
+          {
+            "title": "NIM LLM - Inference Latency",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(nim_inference_duration_seconds_bucket[5m]))",
+                "legendFormat": "p95 latency"
+              }
+            ]
+          }
+        ]
+      }
+    }
+{{- end }}

@@ -1,0 +1,48 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_push", "oci_tarball")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+# ComfyUI + EasyWan22 application layer
+pkg_tar(
+    name = "app_layer",
+    srcs = [
+        "install_nodes.sh",
+        "download_models.py",
+    ],
+    package_dir = "/app/scripts",
+)
+
+pkg_tar(
+    name = "workflow_layer",
+    srcs = glob(["workflows/*.json"]),
+    package_dir = "/app/workflows",
+)
+
+# OCI image: CUDA 12.8 + Python 3.10 + PyTorch 2.7.1 + ComfyUI + custom nodes
+oci_image(
+    name = "image",
+    base = "@cuda_base",
+    tars = [
+        ":app_layer",
+        ":workflow_layer",
+    ],
+    entrypoint = ["python3", "/app/ComfyUI/main.py", "--listen", "0.0.0.0"],
+    env = {
+        "NVIDIA_VISIBLE_DEVICES": "all",
+        "NVIDIA_DRIVER_CAPABILITIES": "compute,utility",
+        "COMFYUI_PORT": "8188",
+    },
+    exposed_ports = ["8188/tcp"],
+)
+
+oci_tarball(
+    name = "image_tarball",
+    image = ":image",
+    repo_tags = ["agent-platform/comfyui:latest"],
+)
+
+oci_push(
+    name = "push",
+    image = ":image",
+    repository = "ghcr.io/agent-platform/comfyui",
+)

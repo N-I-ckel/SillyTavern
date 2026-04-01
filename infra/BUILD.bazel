@@ -1,0 +1,7 @@
+# Root BUILD file for agent-platform
+# All build targets are defined in subdirectories
+
+exports_files([
+    "requirements_lock.txt",
+    "pnpm-lock.yaml",
+])

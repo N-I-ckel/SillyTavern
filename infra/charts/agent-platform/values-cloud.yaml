@@ -1,0 +1,92 @@
+# Cloud production values (GKE/RunPod + H100)
+
+sillytavern:
+  enabled: true
+  image:
+    repository: ghcr.io/agent-platform/sillytavern
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+mcpGateway:
+  enabled: true
+  image:
+    repository: ghcr.io/agent-platform/mcp-gateway
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 2
+
+agentOrchestrator:
+  enabled: true
+  image:
+    repository: ghcr.io/agent-platform/agent-orchestrator
+    tag: latest
+    pullPolicy: Always
+  maxAgents: 50
+
+comfyui:
+  enabled: true
+  image:
+    repository: ghcr.io/agent-platform/comfyui
+    tag: latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 4000m
+      memory: 32Gi
+    limits:
+      cpu: 8000m
+      memory: 64Gi
+      nvidia.com/gpu: 1
+  easywan22:
+    enabled: true
+    modelStorage:
+      size: 200Gi
+      storageClass: premium-rwo
+    models:
+      diffusionModels:
+        - Wan-AI/Wan2.1-T2V-14B
+        - Wan-AI/Wan2.1-I2V-14B-720P
+
+redis:
+  enabled: true
+
+gpuOperator:
+  enabled: true
+
+doppler:
+  enabled: true
+  config: prd
+
+nim:
+  enabled: true
+  llm:
+    enabled: true
+    image:
+      repository: nvcr.io/nim/meta/llama-3.1-8b-instruct
+      tag: latest
+    resources:
+      requests:
+        cpu: 4000m
+        memory: 16Gi
+      limits:
+        cpu: 8000m
+        memory: 32Gi
+        nvidia.com/gpu: 1
+
+monitoring:
+  enabled: true
+  prometheus:
+    retention: 30d
+  loki:
+    retention: 720h
+
+openclaw:
+  enabled: true

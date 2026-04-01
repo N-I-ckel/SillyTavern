@@ -1,0 +1,22 @@
+# Common
+common --enable_bzlmod
+
+# Build optimization
+build --jobs=auto
+build --experimental_remote_merkle_tree_cache
+build --nolegacy_external_runfiles
+
+# Test
+test --test_output=errors
+test --test_summary=terse
+
+# Remote cache (CI/CD)
+build:ci --remote_cache=grpcs://cache.buildbuddy.io
+build:ci --remote_timeout=3600
+build:ci --remote_upload_local_results
+
+# Local development (lightweight disk cache)
+build:local --disk_cache=~/.cache/bazel-disk
+
+# OCI images
+build --@rules_oci//oci:registry_type=docker
