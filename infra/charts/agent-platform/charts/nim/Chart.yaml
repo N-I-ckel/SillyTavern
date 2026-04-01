@@ -1,6 +1,0 @@
-apiVersion: v2
-name: nim
-description: NVIDIA NIM — AI inference microservices
-type: application
-version: 0.1.0
-appVersion: "1.0.0"

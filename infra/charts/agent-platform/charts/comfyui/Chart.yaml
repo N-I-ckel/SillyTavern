@@ -1,6 +1,0 @@
-apiVersion: v2
-name: comfyui
-description: ComfyUI + EasyWan22 — AI video generation with Wan 2.2
-type: application
-version: 0.1.0
-appVersion: "0.1.0"

@@ -1,2 +1,0 @@
-# Root Python requirements (for rules_python)
-# Service-specific requirements are in their respective directories

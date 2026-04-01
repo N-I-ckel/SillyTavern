@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ include "agent-platform.namespace" . }}
-  labels:
-    {{- include "agent-platform.labels" . | nindent 4 }}

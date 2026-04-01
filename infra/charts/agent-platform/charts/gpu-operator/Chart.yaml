@@ -1,6 +1,0 @@
-apiVersion: v2
-name: gpu-operator
-description: NVIDIA GPU Operator — manages driver, toolkit, device plugin, DCGM
-type: application
-version: 0.1.0
-appVersion: "v26.3.0"
