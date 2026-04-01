@@ -9,7 +9,7 @@ const ST_URL = env('SILLYTAVERN_URL', 'http://sillytavern:8000');
 const COMFYUI_URL = env('COMFYUI_URL', 'http://comfyui:8188');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // Health check
 app.get('/health', (_req, res) => {

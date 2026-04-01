@@ -153,7 +153,7 @@ doppler:
   project: agent-platform
   config: dev
   tokenSecretName: doppler-token
-  syncInterval: 60s
+  syncInterval: 60
   managedSecrets:
     - name: app-secrets
       keys:

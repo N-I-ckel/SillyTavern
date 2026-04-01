@@ -75,8 +75,11 @@ spec:
       ports:
         - port: 8080
   egress:
-    # Allow DNS
-    - to: []
+    # Allow DNS only to kube-system CoreDNS (prevent DNS tunneling exfiltration)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
       ports:
         - port: 53
           protocol: UDP

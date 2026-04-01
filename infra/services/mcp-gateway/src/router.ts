@@ -45,6 +45,13 @@ export function createRouter(config: RouterConfig): Router {
     const { toolName } = req.params;
     const { input } = req.body;
 
+    // Validate toolName against known tools to prevent arbitrary endpoint access
+    const knownTools = ['comfyui.queue_status', 'comfyui.list_workflows', 'comfyui.generate_video'];
+    if (!knownTools.includes(toolName)) {
+      res.status(404).json({ error: `Unknown tool: ${toolName}` });
+      return;
+    }
+
     try {
       switch (toolName) {
         case 'comfyui.queue_status': {

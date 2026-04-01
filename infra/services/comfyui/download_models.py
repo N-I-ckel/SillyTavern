@@ -44,11 +44,14 @@ def download_hf_model(subdir: str, repo: str, pattern: str | None) -> None:
     if pattern:
         cmd.extend(["--include", f"{pattern}*"])
 
+    # HF_TOKEN is read automatically by huggingface-cli from env var
+    # Do NOT pass --token to avoid exposing secrets in /proc/<pid>/cmdline
+    env_vars = os.environ.copy()
     if HF_TOKEN:
-        cmd.extend(["--token", HF_TOKEN])
+        env_vars["HF_TOKEN"] = HF_TOKEN
 
     print(f"Downloading {repo} -> {target}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env_vars)
     if result.returncode != 0:
         print(f"Warning: Failed to download {repo}: {result.stderr}", file=sys.stderr)
     else:
@@ -70,13 +73,19 @@ def main() -> None:
     print(f"Starting model download to {MODEL_DIR}")
     create_directories()
 
+    failures = []
     for subdir, repo, pattern in MODELS:
         try:
             download_hf_model(subdir, repo, pattern)
         except Exception as e:
             print(f"Error downloading {repo}: {e}", file=sys.stderr)
+            failures.append(repo)
 
-    # Write marker file
+    if failures:
+        print(f"Failed to download {len(failures)} model(s): {failures}", file=sys.stderr)
+        sys.exit(1)
+
+    # Only write marker if ALL downloads succeeded
     MARKER_FILE.write_text("download_complete\n")
     print("All models downloaded successfully.")
 
